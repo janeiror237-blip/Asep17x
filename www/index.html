@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asep Super App - Final Utuh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; background: #ece5dd; }
+        .hidden { display: none !important; }
+        .flex { display: flex !important; }
+        .grid { display: grid !important; }
+        .chat-bg { background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; background: #dcf8c6; align-self: flex-end; box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative; word-wrap: break-word; animation: pop 0.3s ease; }
+        @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .menu-btn { background: white; padding: 20px; border-radius: 15px; border: none; display: flex; align-items: center; gap: 15px; font-size: 1.1em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; width: 100%; transition: 0.2s; }
+        .menu-btn:active { transform: scale(0.95); }
+        .btn-hapus { background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.7em; cursor: pointer; float: right; }
+        input, select { outline: none; }
+    </style>
+</head>
+<body id="body-app">
+
+    <div id="loading-screen" class="hidden" style="position: fixed; top:0; left:0; width:100%; height:100%; background: #075e54; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white;">
+        <i class="fab fa-whatsapp" style="font-size: 80px; margin-bottom: 20px;"></i>
+        <h2 id="loading-text">MENYIAPKAN DATA...</h2>
+        <div style="width: 70%; height: 10px; border: 1px solid white; border-radius: 10px; overflow: hidden; margin: 10px 0;">
+            <div id="progress-bar" style="width: 0%; height: 100%; background: #25d366; transition: 0.1s;"></div>
+        </div>
+        <p id="percent">0%</p>
+    </div>
+
+    <div id="halaman-depan" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+        <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; width: 85%; max-width: 350px;">
+            <div style="margin-bottom: 15px;">
+                <button onclick="gantiBahasa('id')" style="border:none; background:none; font-size:1.5em;">🇮🇩</button>
+                <button onclick="gantiBahasa('en')" style="border:none; background:none; font-size:1.5em;">🇺🇸</button>
+            </div>
+            <h2 id="txt-setup" style="color: #075e54;">Asep App Setup</h2>
+            <div style="position: relative; margin-bottom: 20px;">
+                <img id="preview-profil" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #25d366;">
+                <input type="file" id="input-foto-awal" accept="image/*" style="display:none;" onchange="previewAwal(this)">
+                <button onclick="document.getElementById('input-foto-awal').click()" style="position: absolute; bottom: 0; right: 30%; background: #25d366; color: white; border: none; border-radius: 50%; width: 30px; height: 30px;"><i class="fas fa-camera"></i></button>
+            </div>
+            <input type="text" id="inputnama" placeholder="Nama kamu..." style="width: 85%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; margin-bottom: 15px;">
+            <button id="btn-masuk" onclick="mulaiLoading()" style="width: 95%; padding: 12px; background: #25d366; color: white; border: none; border-radius: 10px; font-weight: bold;">MASUK</button>
+        </div>
+    </div>
+
+    <div id="halaman-dashboard" class="hidden" style="height: 100vh; background: #f0f2f5; flex-direction: column;">
+        <div style="background: #075e54; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img id="profil-dash" src="" style="width: 40px; height: 40px; border-radius: 50%; background: white; object-fit: cover;">
+                <h3 id="salam-user" style="margin: 0;">Asep</h3>
+            </div>
+            <button onclick="toggleModeMalam()" style="background: none; border: none; color: white; font-size: 1.2em;"><i class="fas fa-moon"></i></button>
+        </div>
+
+        <div style="padding: 15px; text-align: center; background: white; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <h2 id="jam-digital" style="margin: 0; font-size: 2.5em; color: #075e54;">00:00:00</h2>
+            <p id="kalender" style="margin: 5px 0; font-weight: bold; color: #666;"></p>
+            <div style="font-size: 0.9em; color: #25d366;"><i class="fas fa-cloud"></i> <span id="lokasi">GPS Off</span> | <span id="cuaca">--°C</span></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 15px; flex: 1; overflow-y: auto;">
+            <button class="menu-btn" onclick="bukaHalaman('catatan')">
+                <i class="fas fa-comment-dots" style="color: #25d366; font-size: 1.5em;"></i> <span id="m1">Catatan Pribadi</span>
+            </button>
+            <button class="menu-btn" onclick="bukaHalaman('keuangan')">
+                <i class="fas fa-wallet" style="color: #128c7e; font-size: 1.5em;"></i> <span id="m2">Catatan Keuangan</span>
+            </button>
+            <button class="menu-btn" onclick="bukaHalaman('alarm')">
+                <i class="fas fa-bell" style="color: #ffa502; font-size: 1.5em;"></i> <span id="m3">Alarm Bangun</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="halaman-catatan" class="hidden" style="flex-direction: column; height: 100vh;">
+        <div style="background: #075e54; color: white; padding: 10px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-arrow-left" onclick="kembaliDash()" style="padding: 10px;"></i>
+            <img id="profil-chat" src="" style="width: 40px; height: 40px; border-radius: 50%; background: white; object-fit: cover;">
+            <div><b id="nama-chat">Asep</b><br><small>Online</small></div>
+        </div>
+        <div id="box-chat" class="chat-bg" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+        
+        <div id="menu-lampiran" class="hidden" style="position: absolute; bottom: 70px; left: 5%; width: 90%; background: white; border-radius: 20px; padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; z-index: 100;">
+            <div onclick="pilihFile('up-doc')"><div style="background:#7f66ff; color:white; width:50px; height:50px; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center;"><i class="fas fa-file-alt"></i></div><small>Dokumen</small></div>
+            <div onclick="pilihFile('up-cam')"><div style="background:#ff2e74; color:white; width:50px; height:50px; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center;"><i class="fas fa-camera"></i></div><small>Kamera</small></div>
+            <div onclick="pilihFile('up-gal')"><div style="background:#c07ed9; color:white; width:50px; height:50px; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image"></i></div><small>Galeri</small></div>
+            <div onclick="ambilLokasi()"><div style="background:#1ba253; color:white; width:50px; height:50px; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center;"><i class="fas fa-map-marker-alt"></i></div><small>Lokasi</small></div>
+            <div onclick="alert('Kontak segera hadir')"><div style="background:#0099ff; color:white; width:50px; height:50px; border-radius:50%; margin:auto; display:flex; align-items:center; justify-content:center;"><i class="fas fa-user"></i></div><small>Kontak</small></div>
+        </div>
+
+        <input type="file" id="up-doc" style="display:none" onchange="kirimMedia(this, 'doc')">
+        <input type="file" id="up-cam" accept="image/*" capture="camera" style="display:none" onchange="kirimMedia(this, 'img')">
+        <input type="file" id="up-gal" accept="image/*,video/*" style="display:none" onchange="kirimMedia(this, 'img')">
+
+        <div style="background: #ece5dd; padding: 10px; display: flex; align-items: center; gap: 8px;">
+            <div style="background: white; flex: 1; border-radius: 25px; display: flex; align-items: center; padding: 5px 15px;">
+                <input type="text" id="input-chat" placeholder="Ketik pesan..." style="flex:1; border:none; padding: 8px;">
+                <i class="fas fa-paperclip" onclick="toggleLampiran()" style="color: #888; transform: rotate(45deg);"></i>
+            </div>
+            <div onclick="kirimPesan()" style="background: #075e54; color: white; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-paper-plane"></i></div>
+        </div>
+    </div>
+
+    <div id="halaman-keuangan" class="hidden" style="flex-direction: column; height: 100vh; background: #e8f5e9;">
+        <div style="background: #1b5e20; color: white; padding: 15px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-arrow-left" onclick="kembaliDash()"></i> <h3>Keuangan</h3>
+        </div>
+        <div style="padding: 20px; overflow-y: auto;">
+            <div style="background: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
+                <h4>Total Saldo</h4>
+                <h2 id="total-saldo" style="color:#2e7d32;">Rp 0</h2>
+            </div>
+            <input type="number" id="nominal" placeholder="Nominal Rp" style="width: 90%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px;">
+            <select id="tipe-transaksi" style="width: 98%; padding: 12px; border-radius: 10px; margin-bottom: 10px;">
+                <option value="masuk">Uang Masuk</option>
+                <option value="keluar">Uang Keluar</option>
+            </select>
+            <input type="text" id="ket-keuangan" placeholder="Keterangan..." style="width: 90%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px;">
+            <button onclick="tambahTransaksi()" style="width: 100%; padding: 12px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold;">SIMPAN</button>
+            <div id="list-keuangan" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="halaman-alarm" class="hidden" style="flex-direction: column; height: 100vh; background: #fff3e0;">
+        <div style="background: #e65100; color: white; padding: 15px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-arrow-left" onclick="kembaliDash()"></i> <h3>Alarm</h3>
+        </div>
+        <div style="padding: 20px; text-align: center;">
+            <div style="background: white; padding: 30px; border-radius: 20px;">
+                <input type="time" id="waktu-alarm" style="font-size: 3em; border: none; color: #e65100; text-align: center;">
+                <button onclick="setelAlarm()" style="width: 100%; padding: 15px; background: #e65100; color: white; border: none; border-radius: 10px; margin-top: 20px; font-weight: bold;">SETEL ALARM</button>
+            </div>
+            <div id="box-countdown" class="hidden" style="margin-top: 20px; background: #ffe0b2; padding: 15px; border-radius: 10px; border: 2px dashed #e65100;">
+                <small>Akan berbunyi dalam:</small>
+                <h2 id="countdown-text" style="margin: 5px 0; color: #e65100;">00:00:00</h2>
+            </div>
+            <h3 id="status-alarm" style="margin-top: 20px; color: #555;">Alarm Mati</h3>
+            <button id="stop-alarm" class="hidden" onclick="matikanAlarm()" style="width: 100%; padding: 15px; background: #d32f2f; color: white; border: none; border-radius: 10px; font-weight: bold;">STOP ALARM</button>
+        </div>
+    </div>
+
+    <audio id="ringtone" src="https://www.soundjay.com/buttons/beep-01a.mp3" loop></audio>
+    <script src="script.js"></script>
+</body>
+  </html>
+  
